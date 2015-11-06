@@ -57,8 +57,8 @@ public class FreemarkerComponent implements InitializingBean{
 	
 	/**
 	 * @param filePath 相对templateFolder的路径.
-	 * @return
-	 * @throws Exception
+	 * @return Template 模板实例
+	 * @throws Exception 模板解析异常
 	 */
 	public Template parseTemplateFromFile(String filePath) throws Exception{
 		Template template;
