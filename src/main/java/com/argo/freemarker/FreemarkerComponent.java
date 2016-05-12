@@ -1,6 +1,8 @@
 package com.argo.freemarker;
 
 import com.argo.freemarker.spring.HtmlFreeMarkerConfigurer;
+import freemarker.cache.StringTemplateLoader;
+import freemarker.cache.TemplateLoader;
 import freemarker.template.Configuration;
 import freemarker.template.Template;
 import freemarker.template.TemplateModelException;
@@ -14,6 +16,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
+ * Freemarker模板封装
  * @author yaming_deng
  *
  */
@@ -43,6 +46,27 @@ public class FreemarkerComponent implements InitializingBean{
         }
 	}
 
+	/**
+	 * 设置模板加载类.
+	 * @param templateLoader
+     */
+	public void configTemplateLoader(TemplateLoader templateLoader){
+		this.configuration.setTemplateLoader(templateLoader);
+	}
+
+	/**
+	 * 配置文件
+	 * @return Configuration
+     */
+	public Configuration getConfiguration() {
+		return configuration;
+	}
+
+	/**
+	 * 添加全局变量
+	 * @param name 参数名
+	 * @param object 参数值
+     */
 	public void addGlobalParams(String name, Object object){
         if (null == object){
             return;
@@ -54,8 +78,22 @@ public class FreemarkerComponent implements InitializingBean{
             logger.error(e.getMessage(), e);
         }
     }
+
+	/**
+	 * 重新加载模板
+	 * 比较适合模板存放在数据库中. 例如邮件模板
+	 * @param name 模板全名
+     */
+	public void reloadTemplate(String name){
+		try {
+			this.configuration.removeTemplateFromCache(name);
+		} catch (IOException e) {
+			logger.error(e.getMessage(), e);
+		}
+	}
 	
 	/**
+	 * 解析FTL模板
 	 * @param filePath 相对templateFolder的路径.
 	 * @return Template 模板实例
 	 * @throws Exception 模板解析异常
@@ -71,7 +109,14 @@ public class FreemarkerComponent implements InitializingBean{
 			throw new Exception("系统IO异常！,filePath="+filePath,e);
 		}
 	}
-	
+
+	/**
+	 * 渲染模板
+	 * @param templateFile 模板路径
+	 * @param params 参数
+	 * @return 输出内容
+	 * @throws Exception
+     */
 	public String render(String templateFile, Map<String, Object> params) throws Exception{
 		Template template;
 		try {
@@ -98,4 +143,18 @@ public class FreemarkerComponent implements InitializingBean{
 			throw new Exception("输出页面出错！templateFile="+templateFile,e);
 		}
 	}
+
+	/**
+	 * 添加一个模板
+	 * @param name
+	 * @param content
+     */
+	public void putTemplate(String name, String content){
+		TemplateLoader templateLoader = this.configuration.getTemplateLoader();
+		if (templateLoader instanceof StringTemplateLoader){
+			StringTemplateLoader stringTemplateLoader = (StringTemplateLoader)templateLoader;
+			stringTemplateLoader.putTemplate(name, content);
+		}
+	}
+
 }
